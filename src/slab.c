@@ -6,23 +6,26 @@
 
 
 SlabPool* slab_init(size_t obj_size, size_t count){
+size_t bitmap_bytes = (count+7)/8;
+size_t total_size =sizeof(SlabPool)+ bitmap_bytes + (count*obj_size);
 
-void *mem = mmap(NULL, sizeof(SlabPool)+((count+7)/8)+(obj_size*count), PROT_READ|PROT_WRITE, MAP_PRIVATE, MAP_ANONYMOUS, -1, 0);
-	if(mem==MAP_FAILED){
-		perror("mmap failed");
-		return NULL;
-	}
+void *mem = mmap(NULL, total_size, PROT_READ|PROT_WRITE, MAP_PRIVATE, MAP_ANONYMOUS, -1, 0);
+
+if(mem==MAP_FAILED){
+	perror("mmap failed");
+	return NULL;}
+
 SlabPool *pool = (SlabPool*)mem;
 
 
 pool->obj_size = obj_size;
-pool->bitmap_size = bitmap_bytes;
+pool->obj_size = obj_size;
+pool->total_objs = count;
+pool->start =(uint8_t*)(pool->bitmap + bitmap_bytes);
 
+memset(pool->bitmap, 0, pool->bitmap_bytes);
 
-pool->bitmap = (uint_t*)(mem + sizeof(SlabPool));
-pool->start =(void*)(pool->bitmap+bitmap_size);
-
-memset(pool->bitmap, 0, pool->bitmap_size);
+return pool;
 }
 
 

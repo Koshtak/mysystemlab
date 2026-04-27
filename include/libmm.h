@@ -5,7 +5,7 @@ typedef struct{
 void *start
 size_t obj_size
 size_t total_objs
-uint8_t *bitmap;
+uint8_t *bitmap[]; //flexible array member
 }SlabPool;
 
 SlabPool* slab_init(size_t obj_size, size_t count);
